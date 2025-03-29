@@ -1,0 +1,23 @@
+version: '3.1'
+
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: normalniy
+      POSTGRES_DB: todolist_db
+      PGDATA: /var/lib/postgres/data/
+    ports:
+      - 5432:5432
+    volumes:
+      - db:/var/lib/postgres/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d todolist_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db:

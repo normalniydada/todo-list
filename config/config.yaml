@@ -1,0 +1,15 @@
+server:
+  http:
+    host: "localhost" # Хост для HTTP-сервера
+    port: 8080        # Порт для HTTP-сервера
+
+database:
+  host: "localhost"      # Хост базы данных
+  port: 5432             # Порт базы данных
+  user: "admin"          # Имя пользователя для базы данных
+  password: "normalniy"  # Пароль для подключения
+  dbname: "todolist_db"  # Имя базы данных
+  sslmode: "disable"     # Режим SSL
+  maxIdleConns: 15
+  maxOpenConns: 100
+  connMaxLifetime: 5
