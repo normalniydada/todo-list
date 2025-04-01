@@ -1,8 +1,9 @@
 package model
 
+import "github.com/google/uuid"
+
 type Task struct {
-	ID      uint   `json:"id"`      // дописать gorm
-	Title   string `json:"title"`   // дописать gorm
-	Content string `json:"content"` // дописать gorm
-	Done    bool   `json:"done"`    // дописать gorm
+	ID      uuid.UUID `gorm:"primaryKey" json:"id"`   // дописать gorm
+	Title   string    `gorm:"title" json:"title"`     // дописать gorm
+	Content string    `gorm:"content" json:"content"` // дописать gorm
 }
