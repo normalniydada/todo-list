@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"github.com/google/uuid"
 	"todo-list/internal/domain/model"
@@ -20,11 +21,11 @@ var (
 // Я вызываю их в handlerах, при этом в хэндлерах ничего проверяю (за искл. самих handlerов)
 // а проверяю в самих сервисах (которые я должен реализовать)
 type TaskService interface {
-	CreateTask(title, content string) (model.Task, error)            // Валидация + вызов Create
-	GetAllTasks() ([]model.Task, error)                              // Вызов GetAll
-	GetTaskByID(id string) (model.Task, error)                       // Валидация + GetByID
-	UpdateTask(id string, title, content string) (model.Task, error) // Валидация + Update
-	DeleteTask(id string) error                                      // Валидация + Done
+	CreateTask(ctx context.Context, title, content string) (model.Task, error)            // Валидация + вызов Create
+	GetAllTasks(ctx context.Context) ([]model.Task, error)                                // Вызов GetAll
+	GetTaskByID(ctx context.Context, id string) (model.Task, error)                       // Валидация + GetByID
+	UpdateTask(ctx context.Context, id string, title, content string) (model.Task, error) // Валидация + Update
+	DeleteTask(ctx context.Context, id string) error                                      // Валидация + Done
 }
 
 // Примечание. Валидация - проверка входных данных
@@ -49,34 +50,34 @@ func (s *taskServiceImpl) validateTaskData(title, content string) error {
 	return nil
 }
 
-func (s *taskServiceImpl) CreateTask(title, content string) (model.Task, error) {
+func (s *taskServiceImpl) CreateTask(ctx context.Context, title, content string) (model.Task, error) {
 	err := s.validateTaskData(title, content)
 	if err != nil {
 		return model.Task{}, err
 	}
 
 	task := model.Task{
-		ID:      uuid.New(), // может быть ошибка при сохранении в бд (типы данных)
+		ID:      uuid.New(),
 		Title:   title,
 		Content: content,
 	}
-	if err = s.repo.Create(&task); err != nil {
+	if err = s.repo.Create(ctx, &task); err != nil {
 		return model.Task{}, err
 	}
 
 	return task, nil
 }
 
-func (s *taskServiceImpl) GetAllTasks() ([]model.Task, error) {
-	return s.repo.GetAll()
+func (s *taskServiceImpl) GetAllTasks(ctx context.Context) ([]model.Task, error) {
+	return s.repo.GetAll(ctx)
 }
 
-func (s *taskServiceImpl) GetTaskByID(id string) (model.Task, error) {
-	return s.repo.GetByID(id)
+func (s *taskServiceImpl) GetTaskByID(ctx context.Context, id string) (model.Task, error) {
+	return s.repo.GetByID(ctx, id)
 }
 
-func (s *taskServiceImpl) UpdateTask(id string, title, content string) (model.Task, error) {
-	task, err := s.repo.GetByID(id)
+func (s *taskServiceImpl) UpdateTask(ctx context.Context, id string, title, content string) (model.Task, error) {
+	task, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return model.Task{}, err
 	}
@@ -89,13 +90,13 @@ func (s *taskServiceImpl) UpdateTask(id string, title, content string) (model.Ta
 	task.Title = title
 	task.Content = content
 
-	if err = s.repo.Update(&task); err != nil {
+	if err = s.repo.Update(ctx, &task); err != nil {
 		return model.Task{}, err
 	}
 
 	return task, nil
 }
 
-func (s *taskServiceImpl) DeleteTask(id string) error {
-	return s.repo.Delete(id)
+func (s *taskServiceImpl) DeleteTask(ctx context.Context, id string) error {
+	return s.repo.Delete(ctx, id)
 }

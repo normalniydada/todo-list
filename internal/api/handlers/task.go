@@ -29,7 +29,9 @@ func (h *taskHandlerImpl) Create(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
 
-	createdTask, err := h.service.CreateTask(req.Title, req.Content)
+	ctx := c.Request().Context()
+
+	createdTask, err := h.service.CreateTask(ctx, req.Title, req.Content)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 	}
@@ -38,7 +40,9 @@ func (h *taskHandlerImpl) Create(c echo.Context) error {
 
 }
 func (h *taskHandlerImpl) List(c echo.Context) error {
-	tasks, err := h.service.GetAllTasks()
+	ctx := c.Request().Context()
+
+	tasks, err := h.service.GetAllTasks(ctx)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Could not fetch tasks"})
 	}
@@ -47,8 +51,13 @@ func (h *taskHandlerImpl) List(c echo.Context) error {
 }
 func (h *taskHandlerImpl) Get(c echo.Context) error {
 	id := c.Param("id")
+	if id == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing id"})
+	}
 
-	task, err := h.service.GetTaskByID(id)
+	ctx := c.Request().Context()
+
+	task, err := h.service.GetTaskByID(ctx, id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Task is not found"})
 	}
@@ -57,13 +66,18 @@ func (h *taskHandlerImpl) Get(c echo.Context) error {
 }
 func (h *taskHandlerImpl) Update(c echo.Context) error {
 	id := c.Param("id")
-	var req dto.TaskRequestDTO
+	if id == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing id"})
+	}
 
+	var req dto.TaskRequestDTO
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
 
-	task, err := h.service.UpdateTask(id, req.Title, req.Content)
+	ctx := c.Request().Context()
+
+	task, err := h.service.UpdateTask(ctx, id, req.Title, req.Content)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Error id / Title or Content is empty"})
 	}
@@ -72,8 +86,13 @@ func (h *taskHandlerImpl) Update(c echo.Context) error {
 }
 func (h *taskHandlerImpl) Delete(c echo.Context) error {
 	id := c.Param("id")
+	if id == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing id"})
+	}
 
-	if err := h.service.DeleteTask(id); err != nil {
+	ctx := c.Request().Context()
+
+	if err := h.service.DeleteTask(ctx, id); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Task is not found"})
 	}
 
