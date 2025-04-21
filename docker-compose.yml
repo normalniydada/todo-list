@@ -29,7 +29,7 @@ services:
     volumes:
       - "redis_data:/data"
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ] # Простая проверка работоспособности Redis
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
