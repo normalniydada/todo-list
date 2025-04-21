@@ -13,3 +13,14 @@ database:
   maxIdleConns: 15
   maxOpenConns: 100
   connMaxLifetime: 5
+
+redis:
+  address: "localhost:6379" # Адрес вашего Redis сервера
+  password: ""              # Пароль, если есть
+  db: 0                     # Номер базы данных Redis
+
+ratelimiter:
+  enabled: true
+  limit: 100
+  windowSeconds: 60
+  errorMessage: "Rate limit exceeded, please try again later."

@@ -4,12 +4,15 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 	"log"
+	"time"
 )
 
 type Config struct {
-	Database DatabaseConfig
-	Server   ServersConfig
-	Logger   LoggerConfig
+	Database    DatabaseConfig
+	Server      ServersConfig
+	Logger      LoggerConfig
+	Redis       RedisConfig
+	RateLimiter RateLimiterConfig
 }
 type ServersConfig struct {
 	HTTP HTTPConfig `mapstructure:"http"`
@@ -38,6 +41,20 @@ type LoggerConfig struct {
 	FilePath string `mapstructure:"filepath"`
 }
 
+type RedisConfig struct {
+	Address  string `mapstructure:"address"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"`
+}
+
+type RateLimiterConfig struct {
+	Limit        int `mapstructure:"limit"`
+	WindowSec    int `mapstructure:"windowSeconds"`
+	Window       time.Duration
+	Enabled      bool   `mapstructure:"enabled"`
+	ErrorMessage string `mapstructure:"errorMessage"`
+}
+
 func NewConfig() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Println("[INFO] No .env file found. Using system environment variables.")
@@ -56,6 +73,14 @@ func NewConfig() *Config {
 	_ = viper.BindEnv("database.maxopenconns", "TODO_DATABASE_MAXOPENCONNS")
 	_ = viper.BindEnv("database.connmaxlifetime", "TODO_DATABASE_CONNMAXLIFETIME")
 
+	_ = viper.BindEnv("redis.address", "TODO_REDIS_ADDRESS")
+	_ = viper.BindEnv("redis.password", "TODO_REDIS_PASSWORD")
+	_ = viper.BindEnv("redis.db", "TODO_REDIS_DB")
+	_ = viper.BindEnv("rate_limiter.enabled", "TODO_RATELIMIT_ENABLED")
+	_ = viper.BindEnv("rate_limiter.limit", "TODO_RATELIMIT_LIMIT")
+	_ = viper.BindEnv("rate_limiter.windowSeconds", "TODO_RATELIMIT_WINDOW_SECONDS")
+	_ = viper.BindEnv("rate_limiter.errorMessage", "TODO_RATELIMIT_ERROR_MESSAGE")
+
 	// Cfg file
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -63,8 +88,12 @@ func NewConfig() *Config {
 
 	// Read cfg file
 	if err := viper.MergeInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.Println("[DEBUG] Config file not found, fallback to .env")
+		} else {
+			log.Printf("[WARN] Failed to merge config file: %v", err)
+		}
 
-		log.Println("[DEBUG] Config file not found, fallback to .env")
 	}
 
 	// Decode
@@ -72,6 +101,9 @@ func NewConfig() *Config {
 	if err := viper.Unmarshal(cfg); err != nil {
 		log.Fatalf("[ERROR] Failed to load config: %v", err)
 	}
+
+	// time.Duration для Rate Limiter
+	cfg.RateLimiter.Window = time.Duration(cfg.RateLimiter.WindowSec) * time.Second
 
 	return cfg
 }

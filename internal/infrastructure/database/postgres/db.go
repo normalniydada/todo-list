@@ -65,7 +65,7 @@ var (
 	once       sync.Once
 )
 
-func ProvideDB(cfg *config.DatabaseConfig) (Database, error) {
+func ProvideDBClient(cfg *config.DatabaseConfig) (Database, error) {
 	var err error
 	once.Do(func() {
 		dbInstance, err = createConnection(cfg)

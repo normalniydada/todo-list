@@ -10,14 +10,36 @@ services:
       POSTGRES_DB: todolist_db
       PGDATA: /var/lib/postgres/data/
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
-      - db:/var/lib/postgres/data/
+      - db_data:/var/lib/postgres/data/
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d todolist_db"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - app_network
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis_data:/data"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ] # Простая проверка работоспособности Redis
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app_network
 
 volumes:
-  db:
+  db_data:
+  redis_data:
+
+networks:
+  app_network:
+    driver: bridge
